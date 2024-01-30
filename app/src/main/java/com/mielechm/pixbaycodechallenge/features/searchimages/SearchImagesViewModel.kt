@@ -115,6 +115,7 @@ class SearchImagesViewModel @Inject constructor(private val repository: DefaultI
                         comments = image.comments
                     )
                 }
+                _isLoading.value = false
             }
         }
     }
