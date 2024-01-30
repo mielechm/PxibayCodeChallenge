@@ -11,16 +11,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -93,7 +99,23 @@ fun SearchImagesList(
 
 @Composable
 fun ImageItem(image: ImageListItem, navController: NavController, modifier: Modifier = Modifier) {
-    Box(contentAlignment = Alignment.Center, modifier = modifier.clickable { }) {
+    val openAlertDialog = remember { mutableStateOf(false) }
+
+    if (openAlertDialog.value) {
+        GoToDetailsDialog(
+            onConfirm = {
+                openAlertDialog.value = false
+                navController.navigate("image_details_screen/${image.id}")
+            },
+            onDismiss = {
+                openAlertDialog.value = false
+            })
+    }
+
+    Box(
+        contentAlignment = Alignment.Center, modifier = modifier.clickable(
+            onClick = { openAlertDialog.value = true })
+    ) {
         Column {
             SubcomposeAsyncImage(
                 loading = {
@@ -147,4 +169,33 @@ fun ImagesRow(rowIndex: Int, images: List<ImageListItem>, navController: NavCont
         }
         Spacer(modifier = Modifier.height(16.dp))
     }
+}
+
+@Composable
+fun GoToDetailsDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        dismissButton = {
+            TextButton(onClick = {
+                onDismiss()
+            }) {
+                Text(text = "No")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm()
+            }) {
+                Text(text = "Yes")
+            }
+
+        },
+        text = { Text(text = "Would you like to see details of this image?") },
+        icon = { Icons.Default.Info }
+    )
+
 }

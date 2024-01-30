@@ -40,6 +40,9 @@ class SearchImagesViewModel @Inject constructor(private val repository: DefaultI
     private val _isSearching = MutableStateFlow(false)
     val isSearching = _isSearching.asStateFlow()
 
+    private val _searchResults = MutableStateFlow<List<ImageListItem>>(emptyList())
+    val searchResults = _searchResults.asStateFlow()
+
     private var currentPage = 1
     private val perPage = DEFAULT_PAGE_SIZE
     private var availableImages = 0
