@@ -2,11 +2,14 @@ package com.mielechm.pixbaycodechallenge.features.searchimages
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mielechm.pixbaycodechallenge.data.entities.Image
 import com.mielechm.pixbaycodechallenge.data.model.ImageListItem
 import com.mielechm.pixbaycodechallenge.repositories.DefaultImagesRepository
 import com.mielechm.pixbaycodechallenge.utils.DEFAULT_PAGE_SIZE
 import com.mielechm.pixbaycodechallenge.utils.Resource
+import com.mielechm.pixbaycodechallenge.utils.toImage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -28,12 +31,22 @@ class SearchImagesViewModel @Inject constructor(private val repository: DefaultI
     private val _endReached = MutableStateFlow(false)
     val endReached = _endReached.asStateFlow()
 
+    private val _cachedImages = MutableStateFlow<List<ImageListItem>>(emptyList())
+    val cachedImages = _cachedImages.asStateFlow()
+
+    private val _cachedImage = MutableStateFlow<Image>(Image())
+    val cachedImage = _cachedImage.asStateFlow()
+
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching = _isSearching.asStateFlow()
+
     private var currentPage = 1
     private val perPage = DEFAULT_PAGE_SIZE
     private var availableImages = 0
 
     init {
         currentPage = 1
+        getAllImagesFromDb()
         searchImagesPaginated()
     }
 
@@ -59,6 +72,9 @@ class SearchImagesViewModel @Inject constructor(private val repository: DefaultI
                                 comments = it.comments
                             )
                         }
+                        imageItems.forEach {
+                            insertImageToDb(it)
+                        }
                         if (_images.value.size < availableImages) {
                             currentPage++
                         } else {
@@ -71,6 +87,33 @@ class SearchImagesViewModel @Inject constructor(private val repository: DefaultI
                     }
                 }
             }
+    }
+
+    fun insertImageToDb(imageListItem: ImageListItem) {
+        viewModelScope.launch {
+            val imageToAdd = imageListItem.toImage()
+            repository.insertImage(imageToAdd)
+        }
+    }
+
+    fun getAllImagesFromDb() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isLoading.value = true
+            repository.getAllImages().collect {
+                _cachedImages.value = it.map {image ->
+                    ImageListItem(
+                        id = image.id,
+                        previewUrl = image.previewUrl,
+                        user = image.user,
+                        tags = image.tags,
+                        largeImageUrl = image.largeImageUrl,
+                        likes = image.likes,
+                        downloads = image.downloads,
+                        comments = image.comments
+                    )
+                }
+            }
+        }
     }
 
 }

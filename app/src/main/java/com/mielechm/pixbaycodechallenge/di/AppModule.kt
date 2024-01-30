@@ -1,5 +1,9 @@
 package com.mielechm.pixbaycodechallenge.di
 
+import android.content.Context
+import androidx.room.Room
+import com.mielechm.pixbaycodechallenge.data.ImagesDao
+import com.mielechm.pixbaycodechallenge.data.ImagesDatabase
 import com.mielechm.pixbaycodechallenge.data.remote.PixbayApi
 import com.mielechm.pixbaycodechallenge.repositories.DefaultImagesRepository
 import com.mielechm.pixbaycodechallenge.utils.API_KEY
@@ -7,6 +11,7 @@ import com.mielechm.pixbaycodechallenge.utils.BASE_URL
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -38,6 +43,20 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideDefaultImagesRepository(api: PixbayApi) = DefaultImagesRepository(api)
+    fun provideImagesDb(@ApplicationContext context: Context): ImagesDatabase {
+        return Room.databaseBuilder(
+            context,
+            ImagesDatabase::class.java,
+            ImagesDatabase.DATABASE_NAME
+        ).fallbackToDestructiveMigration().build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideImagesDao(imagesDatabase: ImagesDatabase): ImagesDao = imagesDatabase.imagesDao()
+
+    @Singleton
+    @Provides
+    fun provideDefaultImagesRepository(api: PixbayApi, dao: ImagesDao) = DefaultImagesRepository(api, dao)
 
 }
