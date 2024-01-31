@@ -6,8 +6,11 @@ import com.mielechm.pixbaycodechallenge.data.ImagesDao
 import com.mielechm.pixbaycodechallenge.data.ImagesDatabase
 import com.mielechm.pixbaycodechallenge.data.remote.PixbayApi
 import com.mielechm.pixbaycodechallenge.repositories.DefaultImagesRepository
+import com.mielechm.pixbaycodechallenge.repositories.ImagesRepository
 import com.mielechm.pixbaycodechallenge.utils.API_KEY
 import com.mielechm.pixbaycodechallenge.utils.BASE_URL
+import com.mielechm.pixbaycodechallenge.utils.DefaultDispatchers
+import com.mielechm.pixbaycodechallenge.utils.DispatcherProvider
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -57,6 +60,10 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideDefaultImagesRepository(api: PixbayApi, dao: ImagesDao) = DefaultImagesRepository(api, dao)
+    fun provideDefaultImagesRepository(api: PixbayApi, dao: ImagesDao) =
+        DefaultImagesRepository(api, dao) as ImagesRepository
 
+    @Singleton
+    @Provides
+    fun provideDefaultDispatcher() = DefaultDispatchers() as DispatcherProvider
 }

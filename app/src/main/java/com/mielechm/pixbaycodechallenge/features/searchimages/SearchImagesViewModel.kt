@@ -3,12 +3,12 @@ package com.mielechm.pixbaycodechallenge.features.searchimages
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mielechm.pixbaycodechallenge.data.model.ImageListItem
-import com.mielechm.pixbaycodechallenge.repositories.DefaultImagesRepository
+import com.mielechm.pixbaycodechallenge.repositories.ImagesRepository
 import com.mielechm.pixbaycodechallenge.utils.DEFAULT_PAGE_SIZE
+import com.mielechm.pixbaycodechallenge.utils.DispatcherProvider
 import com.mielechm.pixbaycodechallenge.utils.Resource
 import com.mielechm.pixbaycodechallenge.utils.toImage
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,7 +23,10 @@ import javax.inject.Inject
 
 @OptIn(FlowPreview::class)
 @HiltViewModel
-class SearchImagesViewModel @Inject constructor(private val repository: DefaultImagesRepository) :
+class SearchImagesViewModel @Inject constructor(
+    private val dispatchers: DispatcherProvider,
+    private val repository: ImagesRepository
+) :
     ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
@@ -77,7 +80,7 @@ class SearchImagesViewModel @Inject constructor(private val repository: DefaultI
     }
 
     fun searchImagesPaginated(query: String = "fruits") {
-        viewModelScope.launch {
+        viewModelScope.launch(dispatchers.io) {
             _isLoading.value = true
             when (val result = repository.searchImagesPaginated(query, currentPage, perPage)) {
                 is Resource.Error -> {
@@ -117,14 +120,14 @@ class SearchImagesViewModel @Inject constructor(private val repository: DefaultI
     }
 
     fun insertImageToDb(imageListItem: ImageListItem) {
-        viewModelScope.launch {
+        viewModelScope.launch(dispatchers.io) {
             val imageToAdd = imageListItem.toImage()
             repository.insertImage(imageToAdd)
         }
     }
 
     fun getAllImagesFromDb() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatchers.io) {
             _isLoading.value = true
             repository.getAllImages().collect {
                 _cachedImages.value = it.map { image ->
