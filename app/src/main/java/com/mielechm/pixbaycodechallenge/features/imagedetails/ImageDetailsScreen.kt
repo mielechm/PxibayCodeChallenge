@@ -58,7 +58,10 @@ fun ImageDetailsScreen(
                 },
             )
         }) {
-            Column(modifier = Modifier.padding(it)) {
+            Column(
+                modifier = Modifier
+                    .padding(it)
+            ) {
                 ImageDetailsData(image)
             }
         }
@@ -67,7 +70,11 @@ fun ImageDetailsScreen(
 
 @Composable
 fun ImageDetailsData(image: Image) {
-    Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(10.dp)) {
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(10.dp)
+    ) {
         SubcomposeAsyncImage(
             loading = {
                 CircularProgressIndicator(

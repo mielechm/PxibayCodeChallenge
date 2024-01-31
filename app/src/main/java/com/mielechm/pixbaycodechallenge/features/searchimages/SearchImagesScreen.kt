@@ -1,16 +1,20 @@
 package com.mielechm.pixbaycodechallenge.features.searchimages
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AlertDialog
@@ -21,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,6 +34,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,6 +69,17 @@ fun SearchImagesList(
     val isLoading by viewModel.isLoading.collectAsState()
     val loadError by viewModel.loadError.collectAsState()
     val end by viewModel.endReached.collectAsState()
+    val searchText by viewModel.searchText.collectAsState()
+
+    TextField(
+        value = searchText,
+        maxLines = 1,
+        onValueChange = viewModel::onSearchTextChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        placeholder = { Text(text = "Search") }
+    )
 
     LazyColumn(contentPadding = PaddingValues(16.dp)) {
         val itemCount = if (images.size % 2 == 0) {
@@ -113,8 +131,13 @@ fun ImageItem(image: ImageListItem, navController: NavController, modifier: Modi
     }
 
     Box(
-        contentAlignment = Alignment.Center, modifier = modifier.clickable(
-            onClick = { openAlertDialog.value = true })
+        contentAlignment = Alignment.Center, modifier = modifier
+            .clickable(
+                onClick = { openAlertDialog.value = true })
+            .shadow(5.dp, RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(10.dp))
+            .aspectRatio(1f)
+            .background(MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Column {
             SubcomposeAsyncImage(
@@ -135,13 +158,15 @@ fun ImageItem(image: ImageListItem, navController: NavController, modifier: Modi
             Text(
                 text = "User: ${image.user}",
                 fontSize = 16.sp,
-                modifier = Modifier.fillMaxSize(),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
             )
             Text(
                 text = "Tags: ${image.tags}",
-                modifier = Modifier.fillMaxSize(),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
             )
         }
     }
